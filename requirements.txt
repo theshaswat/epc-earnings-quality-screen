@@ -1,0 +1,9 @@
+pandas>=2.0
+matplotlib>=3.8
+openpyxl>=3.1
+reportlab>=4.0
+
+# Also requires github.com/theshaswat/indfin cloned as a sibling directory
+# (../indfin relative to this repo) — src/ scripts add it to sys.path
+# directly rather than installing it, so no pip install step is needed
+# beyond having the source present. See README.md.

@@ -1,0 +1,9 @@
+company,basis,fy,total_assets,total_equity,total_liabilities,pat,cfo,source_page_note
+Larsen & Toubro,consolidated,FY25,379524.10,115403.68,264120.42,,,LT_FY26_Results.pdf p.11 (prior-year column)
+Larsen & Toubro,consolidated,FY26,452549.88,128530.46,324019.42,16084.00,16740.97,"LT_FY26_Results.pdf p.11 (balance sheet), p.2 (Consolidated PAT, incl. one-time labour-code exceptional provision), p.13 (cash flow)"
+KEC International,consolidated,FY25,22179.92,5347.45,16832.47,570.74,419.07,KEC_AR_FY26.pdf p.117-118 (prior-year column)
+KEC International,consolidated,FY26,25158.06,6159.69,18998.37,605.59,-414.12,KEC_AR_FY26.pdf p.117 (balance sheet) p.118 (P&L and cash flow)
+NCC Limited,consolidated,FY25,21006.38,7502.44,13503.94,868.25,741.70,NCC_AR_FY26.pdf p.249-250 (prior-year column)
+NCC Limited,consolidated,FY26,26006.07,8029.12,17976.95,723.96,-458.51,NCC_AR_FY26.pdf p.249-250 (balance sheet) p.251 (P&L) p.254-255 (cash flow)
+PSP Projects,consolidated,FY25,2353.0657,1208.9403,1144.1254,56.4180,52.7101,"PSP_AR_FY26.pdf p.212-214, converted Rs Lakh to Rs Crore (/100), prior-year column; PAT = 5796.04 - 154.24 (JV share) Lakh"
+PSP Projects,consolidated,FY26,3088.8782,1263.9519,1824.9263,55.5158,322.8159,"PSP_AR_FY26.pdf p.212 (balance sheet) p.213 (P&L) p.214 (cash flow), converted Rs Lakh to Rs Crore (/100)"
