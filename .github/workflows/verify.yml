@@ -1,8 +1,16 @@
 name: verify
 
-# The source filings are committed and hash-pinned in data/raw/source_manifest.md,
-# so CI rebuilds the screen from primary documents rather than trusting what is
-# checked in. What gets checked, in order of how much it means:
+# What this does and does not prove.
+#
+# It does not rebuild the screen from the four annual reports. Nothing in src/
+# reads them: the figures were transcribed once, by hand, against the printed
+# page numbers recorded in the source_page_note column of
+# data/final/verified_inputs.csv, and the pipeline starts from that CSV. The
+# filings themselves are not committed either -- they are third-party
+# copyrighted documents, and data/raw/source_manifest.md identifies each one by
+# URL, retrieval time and SHA-256 so a reader can obtain and verify it.
+#
+# What it does check, in order of how much it means:
 #
 #   1. The balance-sheet tie-outs pass. src/accruals.py reconciles assets against
 #      equity plus liabilities for every company-year before it computes an
@@ -40,17 +48,38 @@ jobs:
       - name: Install
         run: pip install -r requirements.txt
 
-      - name: Source filings still match their recorded hashes
+      - name: The two records of the source hashes still agree
+        # The filings are not in the repository, so there is nothing here to
+        # hash. What can still go wrong is the two places that record those
+        # hashes drifting apart -- data/raw/SHA256SUMS, which a reader runs
+        # shasum against, and the table in data/raw/source_manifest.md, which
+        # carries the same hash beside the URL it came from. If someone edits
+        # one and forgets the other, a reader gets a false OK. This checks they
+        # still describe the same four documents.
         run: |
-          cd data/raw/annual_reports
-          for f in *.pdf; do
-            want=$(grep -F "$f" ../source_manifest.md | grep -oE '[0-9a-f]{64}' | head -1)
-            got=$(sha256sum "$f" | cut -d' ' -f1)
-            if [ "$want" != "$got" ]; then
-              echo "::error::$f does not match the manifest"; echo "  manifest: $want"; echo "  on disk:  $got"; exit 1
-            fi
-            echo "ok  $f"
-          done
+          python - <<'PY'
+          import re, sys
+          from pathlib import Path
+
+          sums = {}
+          for line in Path("data/raw/SHA256SUMS").read_text().splitlines():
+              if line.strip():
+                  h, name = line.split()
+                  sums[name.strip()] = h
+
+          manifest = Path("data/raw/source_manifest.md").read_text()
+          rows = dict(re.findall(r"\| (annual_reports/\S+\.pdf) .*?`([0-9a-f]{64})`", manifest))
+
+          if sums != rows:
+              for name in sorted(set(sums) | set(rows)):
+                  a, b = sums.get(name), rows.get(name)
+                  print(("ok   " if a == b else "DIFF ") + name)
+                  if a != b:
+                      print(f"       SHA256SUMS      {a}")
+                      print(f"       source_manifest {b}")
+              sys.exit("SHA256SUMS and source_manifest.md disagree")
+          print(f"ok: both records list the same {len(sums)} documents and hashes")
+          PY
 
       - name: Reconciliation passes and the screen rebuilds
         run: python src/accruals.py

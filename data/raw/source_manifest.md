@@ -1,8 +1,13 @@
 # Source Manifest — EPC Earnings-Quality Screen
 
-Every file in `data/raw/` is logged here on download: exact URL, retrieval
-timestamp, and a SHA-256 hash. If a company re-uploads a "corrected" filing
-later, the hash changes and the pipeline should fail loudly rather than
+Four documents were read directly. They are not redistributed here: all four
+are third-party copyrighted filings, and this repository's MIT licence covers
+its own code and analysis, not KEC's or NCC's annual report. Each is logged
+below on download with its exact URL, retrieval timestamp and SHA-256 hash,
+which is enough to obtain the same document and prove it is the same one.
+
+The hash matters beyond provenance. If a company re-uploads a "corrected"
+filing later, the hash changes, and that should be visible rather than
 silently analysing different numbers than the ones reconciled against.
 
 | File | Company | Period | URL | Retrieved | SHA-256 |
@@ -12,8 +17,23 @@ silently analysing different numbers than the ones reconciled against.
 | annual_reports/NCC_AR_FY26.pdf | NCC Ltd | FY26 (year ended 31-Mar-2026) | https://www.ncclimited.com/annual-reports/NCCAnnualReport202526.pdf | 2026-09-23T01:08 IST | `d1166c9806d223190b2ee72874cdcccdf7b040aab1355000c0d568e875a78337` |
 | annual_reports/PSP_AR_FY26.pdf | PSP Projects Ltd | FY26 (year ended 31-Mar-2026) | https://nsearchives.nseindia.com/annual_reports/AR_29288_PSPPROJECT_2025_2026_A_19303721_28052026184411.pdf | 2026-09-23T01:08 IST | `249341afe9f8c96fa033604a79eed8cdaa55327cce1585e4a4b845b4bda0900a` |
 
-All four hashes re-verified against the files in `annual_reports/` at build
-time (`shasum -a 256`) — match, no drift since download.
+## Verifying you have the same documents
+
+Download the four PDFs from the URLs above into `data/raw/annual_reports/`,
+then, from the repository root:
+
+```bash
+shasum -a 256 -c data/raw/SHA256SUMS
+```
+
+Four `OK` lines means your copies are byte-identical to the ones every figure
+in `data/final/verified_inputs.csv` was read from.
+
+Nothing in `src/` reads the PDFs. Extraction was done once, by hand and
+against the printed page numbers recorded in the `source_page_note` column of
+`verified_inputs.csv`; the pipeline starts from that CSV. So the filings are
+provenance for the numbers, not an input the build consumes — you do not need
+them to reproduce any output in this repository.
 
 ## Notes on this filing (Phase 0 gate findings)
 

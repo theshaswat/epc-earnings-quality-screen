@@ -63,8 +63,8 @@ this project would need.
 epc-earnings-quality-screen/
 ├── data/
 │   ├── raw/
-│   │   ├── annual_reports/       # 4 real, unmodified source PDFs
-│   │   └── source_manifest.md    # URL, retrieval date, SHA-256 per file
+│   │   ├── source_manifest.md    # URL, retrieval date, SHA-256 per filing
+│   │   └── SHA256SUMS            # check your own copies against these
 │   ├── processed/
 │   │   └── reconciliation_log.md # balance-sheet tie-out results
 │   └── final/
@@ -117,7 +117,17 @@ both depend on.
 
 Company FY26 annual reports and results filings, downloaded directly from
 each company's investor-relations page or NSE's archive. Full URLs, retrieval
-timestamps, and SHA-256 hashes for every source file: `data/raw/source_manifest.md`.
+timestamps, and SHA-256 hashes for all four: `data/raw/source_manifest.md`.
+
+The filings themselves are not in this repository. They are third-party
+copyrighted documents, and the MIT licence here covers this project's own code
+and analysis rather than KEC's or NCC's annual report. Nothing in `src/` reads
+them in any case — the figures were transcribed once by hand against the
+printed page numbers recorded in `verified_inputs.csv`, and every output
+rebuilds from that CSV. If you want to check the transcription, download the
+four PDFs from the URLs in the manifest into `data/raw/annual_reports/` and
+run `shasum -a 256 -c data/raw/SHA256SUMS` to confirm you have the same
+documents.
 
 ## Limitations
 
