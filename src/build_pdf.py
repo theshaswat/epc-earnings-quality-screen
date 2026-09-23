@@ -8,6 +8,7 @@ from pathlib import Path
 
 import matplotlib
 import pandas as pd
+from reportlab import rl_config
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
@@ -22,6 +23,11 @@ from reportlab.platypus import (
 ROOT = Path(__file__).resolve().parents[1]
 CHARTS = ROOT / "outputs" / "charts"
 OUT_PDF = ROOT / "reports" / "methodology_memo.pdf"
+
+# Reproducible build: without this reportlab stamps a wall-clock CreationDate
+# and a random document ID, so two runs of identical inputs produce different
+# bytes and every rebuild shows up as a spurious diff.
+rl_config.invariant = 1
 
 mpl_fonts = Path(matplotlib.get_data_path()) / "fonts" / "ttf"
 pdfmetrics.registerFont(TTFont("DejaVuSans", str(mpl_fonts / "DejaVuSans.ttf")))
