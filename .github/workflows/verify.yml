@@ -65,7 +65,11 @@ jobs:
           for line in Path("data/raw/SHA256SUMS").read_text().splitlines():
               if line.strip():
                   h, name = line.split()
-                  sums[name.strip()] = h
+                  # SHA256SUMS names each file from the repository root, so that
+                  # `shasum -a 256 -c data/raw/SHA256SUMS` works there as the
+                  # README says. The manifest table names them relative to
+                  # data/raw. Strip the prefix so the two are comparable.
+                  sums[name.strip().removeprefix("data/raw/")] = h
 
           manifest = Path("data/raw/source_manifest.md").read_text()
           rows = dict(re.findall(r"\| (annual_reports/\S+\.pdf) .*?`([0-9a-f]{64})`", manifest))
