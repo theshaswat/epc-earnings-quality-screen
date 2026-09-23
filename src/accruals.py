@@ -13,14 +13,11 @@ cash-flow tie-out checks before any ratio is computed, (2) computes Sloan
 """
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import pandas as pd
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "indfin"))
-from indfin.reconcile.balance_sheet import check_balance_sheet  # noqa: E402
-from indfin.reconcile.cashflow import check_cashflow  # noqa: E402
+from indfin.reconcile.balance_sheet import check_balance_sheet
 
 ROOT = Path(__file__).resolve().parents[1]
 INPUT_CSV = ROOT / "data" / "final" / "verified_inputs.csv"
@@ -28,7 +25,7 @@ OUTPUT_CSV = ROOT / "data" / "final" / "accrual_screen.csv"
 RECON_LOG = ROOT / "data" / "processed" / "reconciliation_log.md"
 
 
-def reconcile_all(df: pd.DataFrame) -> list[str]:
+def reconcile_all(df: pd.DataFrame) -> tuple[list[str], list[dict]]:
     """Runs the balance-sheet tie-out on every company-year. Cash-flow
     tie-out is not run here because the source filings for this comparative
     analysis don't disclose the opening/closing cash and FX-effect lines in
@@ -36,6 +33,7 @@ def reconcile_all(df: pd.DataFrame) -> list[str]:
     check remains available in indfin.reconcile.cashflow for filings where
     those lines are extracted. Noted honestly rather than skipped silently."""
     lines = ["# Reconciliation Log — EPC Comparative Accrual Analysis", ""]
+    records: list[dict] = []
     all_passed = True
     for _, row in df.iterrows():
         r = check_balance_sheet(
@@ -51,12 +49,19 @@ def reconcile_all(df: pd.DataFrame) -> list[str]:
             f"{status} (assets {r.lhs:,.2f} vs equity+liabilities {r.rhs:,.2f}, "
             f"diff {r.diff:.4f}, tolerance {r.tolerance})"
         )
+        records.append({
+            "check": "Balance-sheet tie-out",
+            "subject": f"{row['company']} {row['fy']}",
+            "passed": bool(r.passed),
+            "detail": (f"assets {r.lhs:,.2f} vs equity + liabilities {r.rhs:,.2f} "
+                       f"(diff {r.diff:.4f}, tolerance {r.tolerance})"),
+        })
         if not r.passed:
             all_passed = False
     lines.append("")
     lines.append(f"**Overall: {'all company-years reconciled clean' if all_passed else 'SOME COMPANY-YEARS FAILED — see above'}**")
     RECON_LOG.write_text("\n".join(lines))
-    return lines
+    return lines, records
 
 
 def compute_accruals(df: pd.DataFrame) -> pd.DataFrame:
@@ -64,7 +69,15 @@ def compute_accruals(df: pd.DataFrame) -> pd.DataFrame:
     TACC = (PAT - CFO) / Average Total Assets
     Positive TACC = profit exceeds operating cash flow (lower quality).
     Negative TACC = operating cash flow exceeds profit (higher quality,
-    more cash-backed)."""
+    more cash-backed).
+
+    PAT basis: total group profit for the year INCLUDING non-controlling
+    interests. CFO and total assets are both group-level figures, so the
+    numerator has to be group-level too. Using profit attributable to owners
+    against group CFO understates accruals for any company with material
+    minority interests -- L&T's NCI share is Rs 2,869.89 Cr of FY26 profit,
+    enough to flip its accrual ratio's sign. Every row's source_page_note
+    records which figure was taken and the NCI split where one exists."""
     fy26 = df[df["fy"] == "FY26"].set_index("company")
     fy25_assets = df[df["fy"] == "FY25"].set_index("company")["total_assets"]
 
@@ -80,7 +93,7 @@ def compute_accruals(df: pd.DataFrame) -> pd.DataFrame:
 
 if __name__ == "__main__":
     df = pd.read_csv(INPUT_CSV)
-    log_lines = reconcile_all(df)
+    log_lines, _ = reconcile_all(df)
     print("\n".join(log_lines))
     print()
 

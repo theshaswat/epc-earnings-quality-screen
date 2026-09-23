@@ -23,13 +23,28 @@ whose profit is backed by operating cash, and whose isn't?
 |---|---|---|---|---|---|
 | 1 (worst) | NCC Limited | 724.0 | −458.5 | +5.03% | −0.63x |
 | 2 | KEC International | 605.6 | −414.1 | +4.31% | −0.68x |
-| 3 | Larsen & Toubro | 16,084.0 | 16,741.0 | −0.16% | 1.04x |
+| 3 | Larsen & Toubro | 18,953.9 | 16,741.0 | +0.53% | 0.88x |
 | 4 (best) | PSP Projects | 55.5 | 322.8 | −9.82% | 5.81x |
 
 Worst = most profit relative to assets, least cash behind it. Best = cash
 generation running ahead of reported profit. See the memo for what each of
 these numbers actually means per company — a high or low ratio isn't a
 verdict on its own.
+
+The two in the middle are the interesting ones. NCC and KEC both reported a
+profit and both ran negative operating cash flow in the same year — ₹724 Cr of
+profit against −₹459 Cr of cash at NCC, ₹606 Cr against −₹414 Cr at KEC. That
+is the working-capital gap this screen exists to surface, and it is not
+visible from the P&L alone.
+
+**On L&T's PAT.** The figure used is total group profit of ₹18,953.9 Cr,
+including ₹2,869.9 Cr of non-controlling interests — not the ₹16,084.0 Cr
+attributable to owners. CFO and total assets are both group-level, so the
+numerator has to be too. Using the attributable figure instead gives −0.16%
+and a CFO/PAT of 1.04x, which flips the sign and moves L&T from third to
+fourth. L&T is the only company here with material minority interests, so it
+is the only one where the choice changes anything — which is exactly why it
+is stated rather than left implicit.
 
 ## Why this is 4 companies and 1 year, not a sector-wide screen
 
@@ -58,13 +73,17 @@ epc-earnings-quality-screen/
 ├── src/
 │   ├── accruals.py               # reconciliation + accrual computation
 │   ├── build_charts.py           # the 3 exhibits in outputs/charts/
+│   ├── build_dashboard.py        # the interactive dashboard
 │   ├── build_excel.py            # live formula-driven screener workbook
 │   └── build_pdf.py              # the methodology memo
 ├── outputs/
 │   ├── charts/                   # 3 PNG exhibits, no overlap in content
+│   ├── dashboard/index.html      # self-contained, no external requests
 │   └── screener/                 # Excel workbook
 ├── reports/
 │   └── methodology_memo.pdf      # full writeup — read this first
+├── tests/
+│   └── test_published_figures.py # asserts docs/dashboard match the data
 ├── requirements.txt
 ├── DATA_DICTIONARY.md
 ├── LIMITATIONS.md
@@ -75,17 +94,22 @@ epc-earnings-quality-screen/
 ## How to run
 
 ```bash
-# from the parent directory containing both this repo and indfin/
-pip install -r epc-earnings-quality-screen/requirements.txt
-cd epc-earnings-quality-screen
+pip install -r requirements.txt
 python src/accruals.py       # reconciles inputs, computes accrual_screen.csv
 python src/build_charts.py   # writes outputs/charts/*.png
 python src/build_excel.py    # writes outputs/screener/*.xlsx
 python src/build_pdf.py      # writes reports/methodology_memo.pdf
+python src/build_dashboard.py # writes outputs/dashboard/index.html
+pytest tests                 # asserts the published figures match the data
 ```
 
-Requires [`indfin`](https://github.com/theshaswat/indfin) cloned as a sibling
-directory (`../indfin`) — the shared reconciliation/extraction library this
+`outputs/dashboard/index.html` opens straight from disk — one file, no external
+requests, no build step. It ranks the four companies, shows the arithmetic
+behind each ratio, and carries the balance-sheet tie-out and the page citation
+for every figure.
+
+`requirements.txt` installs [`indfin`](https://github.com/theshaswat/indfin)
+from git — the shared reconciliation/extraction library this
 project and [`bank-nim-credit-cost-bridge`](https://github.com/theshaswat/bank-nim-credit-cost-bridge)
 both depend on.
 

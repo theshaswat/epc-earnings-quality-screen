@@ -169,16 +169,26 @@ def build() -> None:
     ]))
 
     story.append(KeepTogether([
-        P("Larsen &amp; Toubro — roughly neutral", "h2"),
+        P("Larsen &amp; Toubro — close to neutral, and the one figure worth checking twice", "h2"),
         P(
-            "L&amp;T's accrual ratio comes out at −0.16%, essentially flat — PAT of ₹16,084 Crore against CFO "
-            "of ₹16,741 Crore, a CFO/PAT ratio of 1.04x. At L&amp;T's scale (₹4.5 lakh Crore of consolidated "
-            "assets), a company this size producing a near-zero accrual ratio is itself informative: it "
-            "means profit and operating cash are moving together at scale, not diverging. One caveat worth "
-            "stating plainly — FY26 PAT includes a one-time exceptional provision related to the new labour "
-            "codes, disclosed on the same results page as the PAT figure used here. That provision is "
-            "already inside the number, not adjusted out, because the point of this screen is what was "
-            "actually reported and actually converted to cash, not a normalized figure.", "body"),
+            "L&amp;T's accrual ratio is +0.53% — PAT of ₹18,954 Crore against CFO of ₹16,741 Crore, a "
+            "CFO/PAT ratio of 0.88x. At ₹4.5 lakh Crore of consolidated assets, a ratio this close to zero "
+            "says profit and operating cash are broadly moving together at scale rather than diverging, "
+            "which is the main thing this screen is looking for.", "body"),
+        P(
+            "Which PAT goes in the numerator matters more here than anywhere else in this screen, and it "
+            "is worth being explicit about. L&amp;T's FY26 results report ₹16,084 Crore of profit "
+            "attributable to owners and ₹18,954 Crore of total group profit, the difference being "
+            "₹2,870 Crore of non-controlling interests. CFO and total assets are both group-level figures, "
+            "so the numerator has to be group-level too. Using the attributable figure against group cash "
+            "flow gives −0.16% and a CFO/PAT ratio of 1.04x — it flips the sign of the ratio and moves "
+            "L&amp;T from third to fourth in the ranking. The group figure is used here, consistent with "
+            "the other three companies, and the split is recorded in the source note on that row.", "body"),
+        P(
+            "One caveat worth stating plainly: FY26 PAT includes a one-time exceptional provision related "
+            "to the new labour codes, disclosed on the same results page as the PAT figure used here. It "
+            "is left inside the number rather than adjusted out, because the point of this screen is what "
+            "was actually reported and actually converted to cash, not a normalised figure.", "body"),
     ]))
 
     story.append(KeepTogether([

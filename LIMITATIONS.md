@@ -70,8 +70,15 @@ page).
   labour codes, disclosed on the same page as the PAT figure used here. It's
   left inside the number rather than adjusted out, because the point of this
   screen is what was actually reported and actually converted to cash — but
-  it does mean L&T's −0.16% accrual ratio isn't a clean read on recurring
+  it does mean L&T's +0.53% accrual ratio isn't a clean read on recurring
   operations alone.
+- L&T is the only company in this set with material non-controlling
+  interests, and the screen uses **total group profit** (₹18,953.9 Cr), not
+  profit attributable to owners (₹16,084.0 Cr), to stay consistent with the
+  group-level CFO and total assets in the same ratio. Using the attributable
+  figure would give −0.16% and reorder the ranking. The choice is defensible
+  and is the standard one, but it is a choice, and it is the single input in
+  this project with the largest effect on the output.
 
 ## What would fix each of these
 

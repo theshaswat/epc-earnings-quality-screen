@@ -3,7 +3,8 @@ matplotlib>=3.8
 openpyxl>=3.1
 reportlab>=4.0
 
-# Also requires github.com/theshaswat/indfin cloned as a sibling directory
-# (../indfin relative to this repo) — src/ scripts add it to sys.path
-# directly rather than installing it, so no pip install step is needed
-# beyond having the source present. See README.md.
+# The shared reconciliation library this project is built on. Installing it
+# from git is what makes `pip install -r requirements.txt` sufficient on a
+# fresh clone -- the scripts do a plain `import indfin` and do not manipulate
+# sys.path, so the package has to genuinely be installed.
+indfin @ git+https://github.com/theshaswat/indfin.git@main

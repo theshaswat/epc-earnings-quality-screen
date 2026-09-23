@@ -42,8 +42,8 @@ def chart_accrual_ranking(df: pd.DataFrame) -> None:
     for bar, val in zip(bars, df["accrual_ratio"]):
         ax.text(bar.get_width() + (0.3 if val > 0 else -0.3), bar.get_y() + bar.get_height() / 2,
                  f"{val*100:+.1f}%", va="center", ha="left" if val > 0 else "right", fontsize=9)
-    ax.text(0.99, 0.02, "Source: company FY26 annual reports/results filings, reconciled — see reports/methodology_memo.pdf",
-             transform=ax.transAxes, fontsize=6.5, color=GREY, ha="right")
+    fig.text(0.99, -0.02, "Source: company FY26 annual reports/results filings, reconciled — see reports/methodology_memo.pdf",
+              fontsize=6.5, color=GREY, ha="right")
     fig.tight_layout()
     fig.savefig(OUT / "01_accrual_ratio_ranking.png", bbox_inches="tight")
     plt.close(fig)
@@ -88,8 +88,8 @@ def chart_balance_sheet_growth(inputs: pd.DataFrame) -> None:
     for bar, val in zip(bars, growth.values):
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.5, f"{val:+.1f}%",
                  ha="center", fontsize=9)
-    ax.text(0.99, 0.02, "Source: company FY25/FY26 balance sheets, reconciled",
-             transform=ax.transAxes, fontsize=6.5, color=GREY, ha="right")
+    fig.text(0.99, -0.02, "Source: company FY25/FY26 balance sheets, reconciled",
+              fontsize=6.5, color=GREY, ha="right")
     fig.tight_layout()
     fig.savefig(OUT / "03_balance_sheet_growth.png", bbox_inches="tight")
     plt.close(fig)

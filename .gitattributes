@@ -1,0 +1,10 @@
+# Generated artefacts — excluded from GitHub's language statistics so the
+# repo reads as the Python analysis it is, not as the HTML and PDF it emits.
+outputs/** linguist-generated=true
+reports/*.pdf linguist-generated=true
+data/final/*.csv linguist-generated=true
+data/processed/*.md linguist-generated=true
+
+# Keep the real sources counted.
+src/*.py linguist-generated=false
+tests/*.py linguist-generated=false
