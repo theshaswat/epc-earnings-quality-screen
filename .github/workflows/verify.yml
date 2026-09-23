@@ -61,7 +61,34 @@ jobs:
           python src/build_excel.py
 
       - name: Committed artifacts reproduce exactly
-        run: git diff --exit-code -- data/final data/processed outputs/dashboard outputs/screener
+        run: git diff --exit-code -- data/final data/processed outputs/dashboard
+
+      - name: Committed workbook reproduces
+        # Compared entry by entry rather than as bytes, so a failure says which
+        # part of the workbook moved instead of "Binary files differ".
+        run: |
+          git show HEAD:outputs/screener/epc_earnings_quality_screener.xlsx > /tmp/committed.xlsx
+          python - <<'PY'
+          import sys, zipfile
+          a = zipfile.ZipFile("/tmp/committed.xlsx")
+          b = zipfile.ZipFile("outputs/screener/epc_earnings_quality_screener.xlsx")
+          na = {i.filename for i in a.infolist()}
+          nb = {i.filename for i in b.infolist()}
+          bad = False
+          if na != nb:
+              bad = True
+              print("entry set differs:", sorted(na ^ nb))
+          for n in sorted(na & nb):
+              x, y = a.read(n), b.read(n)
+              if x != y:
+                  bad = True
+                  i = next((k for k in range(min(len(x), len(y))) if x[k] != y[k]),
+                           min(len(x), len(y)))
+                  print(f"DIFFERS: {n} (first difference at byte {i})")
+                  print("  committed:", x[max(0, i - 100):i + 100])
+                  print("  rebuilt  :", y[max(0, i - 100):i + 100])
+          sys.exit(1 if bad else 0)
+          PY
 
       - name: Tests
         run: |
