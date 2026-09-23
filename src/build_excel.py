@@ -54,17 +54,22 @@ EPOCH = dt.datetime(2026, 1, 1, 0, 0, 0)
 def _make_reproducible(path: Path) -> None:
     """Rewrite the .xlsx so two builds of the same data produce the same bytes.
 
-    Two things vary between runs and neither is part of the analysis. Python's
-    zipfile stamps every entry with the wall clock, and openpyxl overwrites
+    Three things vary between runs and none is part of the analysis. Python's
+    zipfile stamps every entry with the wall clock; openpyxl overwrites
     dcterms:modified at save time regardless of what the workbook properties
-    say -- which is why setting wb.properties.modified alone is not enough.
-    Both are normalised here. Every sheet's XML is byte-identical already.
+    say, which is why setting wb.properties.modified alone is not enough; and
+    deflate output differs between zlib builds, so the same XML compresses to
+    different bytes on Linux than on macOS. The first two are normalised. The
+    third is sidestepped by storing the archive uncompressed -- 41 KB against
+    12 KB, which is nothing next to the source filings in data/raw, and it
+    buys a byte guarantee that actually holds across platforms instead of only
+    on the machine that built it. Every sheet's XML is identical either way.
     """
     tmp = path.with_suffix(".xlsx.tmp")
     stamp = (EPOCH.year, EPOCH.month, EPOCH.day, EPOCH.hour, EPOCH.minute, EPOCH.second)
     fixed = EPOCH.strftime("%Y-%m-%dT%H:%M:%SZ").encode()
     with zipfile.ZipFile(path) as src, zipfile.ZipFile(
-        tmp, "w", zipfile.ZIP_DEFLATED
+        tmp, "w", zipfile.ZIP_STORED
     ) as dst:
         for item in sorted(src.infolist(), key=lambda i: i.filename):
             data = src.read(item.filename)
@@ -75,7 +80,7 @@ def _make_reproducible(path: Path) -> None:
                     data,
                 )
             info = zipfile.ZipInfo(item.filename, date_time=stamp)
-            info.compress_type = zipfile.ZIP_DEFLATED
+            info.compress_type = zipfile.ZIP_STORED
             info.external_attr = item.external_attr
             dst.writestr(info, data)
     shutil.move(str(tmp), str(path))
