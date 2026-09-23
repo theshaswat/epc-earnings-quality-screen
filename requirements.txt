@@ -1,6 +1,12 @@
 pandas>=2.0
 matplotlib>=3.8
 openpyxl>=3.1
+# openpyxl serialises XML with lxml when it is installed and falls back to
+# xml.etree otherwise, and the two differ on whitespace in self-closing tags
+# (<tag/> against <tag />). That alone made the committed workbook fail to
+# reproduce in CI. Declaring it makes the build depend on one serialiser
+# rather than on whatever happens to be in the environment.
+lxml>=5.0
 reportlab>=4.0
 
 # The shared reconciliation library this project is built on. Installing it
