@@ -3,6 +3,10 @@ of accruals.py's computation, not a paste of the CSV output. Anyone opening
 this in Excel should be able to trace every ratio back to an input cell."""
 from __future__ import annotations
 
+import datetime as dt
+import re
+import shutil
+import zipfile
 from pathlib import Path
 
 import pandas as pd
@@ -39,6 +43,42 @@ def style_header_row(ws, row: int, ncols: int) -> None:
 def autosize(ws, widths: dict[str, int]) -> None:
     for col, w in widths.items():
         ws.column_dimensions[col].width = w
+
+
+# Deterministic build. The date is arbitrary and carries no meaning beyond
+# being fixed -- the retrieval dates that do mean something live in
+# data/raw/source_manifest.md.
+EPOCH = dt.datetime(2026, 1, 1, 0, 0, 0)
+
+
+def _make_reproducible(path: Path) -> None:
+    """Rewrite the .xlsx so two builds of the same data produce the same bytes.
+
+    Two things vary between runs and neither is part of the analysis. Python's
+    zipfile stamps every entry with the wall clock, and openpyxl overwrites
+    dcterms:modified at save time regardless of what the workbook properties
+    say -- which is why setting wb.properties.modified alone is not enough.
+    Both are normalised here. Every sheet's XML is byte-identical already.
+    """
+    tmp = path.with_suffix(".xlsx.tmp")
+    stamp = (EPOCH.year, EPOCH.month, EPOCH.day, EPOCH.hour, EPOCH.minute, EPOCH.second)
+    fixed = EPOCH.strftime("%Y-%m-%dT%H:%M:%SZ").encode()
+    with zipfile.ZipFile(path) as src, zipfile.ZipFile(
+        tmp, "w", zipfile.ZIP_DEFLATED
+    ) as dst:
+        for item in sorted(src.infolist(), key=lambda i: i.filename):
+            data = src.read(item.filename)
+            if item.filename == "docProps/core.xml":
+                data = re.sub(
+                    rb"(<dcterms:modified[^>]*>)[^<]*(</dcterms:modified>)",
+                    rb"\g<1>" + fixed + rb"\g<2>",
+                    data,
+                )
+            info = zipfile.ZipInfo(item.filename, date_time=stamp)
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = item.external_attr
+            dst.writestr(info, data)
+    shutil.move(str(tmp), str(path))
 
 
 def build() -> None:
@@ -193,7 +233,14 @@ def build() -> None:
     ws_readme.column_dimensions["A"].width = 95
 
     OUT_XLSX.parent.mkdir(parents=True, exist_ok=True)
+    # Fixed document timestamps. openpyxl otherwise stamps the current time into
+    # docProps, which is the only thing that differs between two builds of the
+    # same data -- every sheet's XML is already identical. Pinning it lets CI
+    # check the committed workbook byte for byte instead of taking it on trust.
+    wb.properties.created = EPOCH
+    wb.properties.modified = EPOCH
     wb.save(OUT_XLSX)
+    _make_reproducible(OUT_XLSX)
     print(f"Written: {OUT_XLSX}")
 
 

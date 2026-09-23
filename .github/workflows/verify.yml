@@ -1,0 +1,74 @@
+name: verify
+
+# The source filings are committed and hash-pinned in data/raw/source_manifest.md,
+# so CI rebuilds the screen from primary documents rather than trusting what is
+# checked in. What gets checked, in order of how much it means:
+#
+#   1. The balance-sheet tie-outs pass. src/accruals.py reconciles assets against
+#      equity plus liabilities for every company-year before it computes an
+#      accrual ratio, so a bad extraction stops here.
+#   2. The committed artifacts reproduce byte for byte -- the CSVs, the
+#      reconciliation log, the dashboard and the Excel screener. None of them
+#      depends on the machine, so an exact diff is the right test, and it catches
+#      a number edited by hand without rerunning what produces it. The workbook
+#      is in that list because its build was made deterministic on purpose; see
+#      _make_reproducible in src/build_excel.py.
+#   3. The tests pass, including the ones asserting the README, the dashboard and
+#      the memo still quote the figures the CSVs actually hold.
+#
+# Charts and the PDF are rebuilt as a smoke test and deliberately not compared.
+# matplotlib renders text differently on Linux than on macOS, so the PNGs differ
+# between a correct local build and a correct CI build, and the memo embeds them.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Source filings still match their recorded hashes
+        run: |
+          cd data/raw/annual_reports
+          for f in *.pdf; do
+            want=$(grep -F "$f" ../source_manifest.md | grep -oE '[0-9a-f]{64}' | head -1)
+            got=$(sha256sum "$f" | cut -d' ' -f1)
+            if [ "$want" != "$got" ]; then
+              echo "::error::$f does not match the manifest"; echo "  manifest: $want"; echo "  on disk:  $got"; exit 1
+            fi
+            echo "ok  $f"
+          done
+
+      - name: Reconciliation passes and the screen rebuilds
+        run: python src/accruals.py
+
+      - name: Dashboard and workbook rebuild
+        run: |
+          python src/build_dashboard.py
+          python src/build_excel.py
+
+      - name: Committed artifacts reproduce exactly
+        run: git diff --exit-code -- data/final data/processed outputs/dashboard outputs/screener
+
+      - name: Tests
+        run: |
+          pip install pytest
+          pytest -q
+
+      - name: Charts and memo still build
+        run: |
+          python src/build_charts.py
+          python src/build_pdf.py
